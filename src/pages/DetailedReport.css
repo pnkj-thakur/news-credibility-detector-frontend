@@ -1,0 +1,249 @@
+.report-header {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.report-header h1 {
+  color: #2c3e50;
+  font-size: 26px;
+  margin-bottom: 15px;
+  line-height: 1.3;
+}
+
+.report-meta {
+  display: flex;
+  gap: 20px;
+  color: #7f8c8d;
+  font-size: 13px;
+}
+
+.report-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.report-left,
+.report-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.article-preview {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.article-preview h3 {
+  color: #2c3e50;
+  font-size: 16px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #e0e6ed;
+  padding-bottom: 10px;
+}
+
+.preview-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.preview-content p {
+  color: #555;
+  line-height: 1.8;
+  font-size: 14px;
+  margin: 0 0 15px 0;
+  text-align: justify;
+}
+
+.score-summary {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.score-badge {
+  width: 120px;
+  height: 120px;
+  border: 4px solid;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+}
+
+.score-badge .score-number {
+  font-size: 40px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.score-badge .score-label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.score-summary-text {
+  color: #555;
+  line-height: 1.6;
+  font-size: 14px;
+  margin: 0;
+}
+
+.indicators-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.indicators-section h3 {
+  color: #2c3e50;
+  font-size: 16px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #e0e6ed;
+  padding-bottom: 10px;
+}
+
+.indicators-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.indicator-item {
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #3498db;
+}
+
+.indicator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.indicator-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.indicator-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.status-badge {
+  font-size: 10px;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.impact-badge {
+  font-size: 10px;
+  color: #2c3e50;
+  background-color: #e0e6ed;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.indicator-description {
+  margin: 0;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.recommendations-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.recommendations-section h3 {
+  color: #2c3e50;
+  font-size: 16px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #e0e6ed;
+  padding-bottom: 10px;
+}
+
+.recommendations-list {
+  color: #555;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.recommendations-list li {
+  margin-bottom: 10px;
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.report-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.report-actions button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .report-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .report-header {
+    padding: 20px;
+  }
+
+  .article-preview,
+  .score-summary,
+  .indicators-section,
+  .recommendations-section {
+    padding: 20px;
+  }
+
+  .indicator-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .indicator-badges {
+    justify-content: flex-start;
+  }
+}

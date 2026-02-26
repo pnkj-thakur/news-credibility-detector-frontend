@@ -1,0 +1,225 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f7fa;
+  color: #2c3e50;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  font-size: 24px;
+  color: #3498db;
+}
+
+/* Global Button Styles */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+  background-color: #95a5a6;
+  color: white;
+  padding: 10px 20px;
+}
+
+.btn-secondary:hover {
+  background-color: #7f8c8d;
+}
+
+/* Global Form Styles */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 14px;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  padding: 10px 12px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Badge Styles */
+.badge-high {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-moderate {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-low {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Container Styles */
+.dashboard-container,
+.analysis-container,
+.articles-list-container,
+.organizations-container,
+.detailed-report-container,
+.help-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.dashboard-main,
+.analysis-main,
+.articles-list-main,
+.organizations-main,
+.detailed-report-main,
+.help-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Content Styles */
+.dashboard-content,
+.analysis-content,
+.articles-list-content,
+.organizations-content,
+.detailed-report-content,
+.help-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+.dashboard-content::-webkit-scrollbar,
+.analysis-content::-webkit-scrollbar,
+.articles-list-content::-webkit-scrollbar,
+.organizations-content::-webkit-scrollbar,
+.detailed-report-content::-webkit-scrollbar,
+.help-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dashboard-content::-webkit-scrollbar-track,
+.analysis-content::-webkit-scrollbar-track,
+.articles-list-content::-webkit-scrollbar-track,
+.organizations-content::-webkit-scrollbar-track,
+.detailed-report-content::-webkit-scrollbar-track,
+.help-content::-webkit-scrollbar-track {
+  background: #f5f7fa;
+}
+
+.dashboard-content::-webkit-scrollbar-thumb,
+.analysis-content::-webkit-scrollbar-thumb,
+.articles-list-content::-webkit-scrollbar-thumb,
+.organizations-content::-webkit-scrollbar-thumb,
+.detailed-report-content::-webkit-scrollbar-thumb,
+.help-content::-webkit-scrollbar-thumb {
+  background: #bdc3c7;
+  border-radius: 4px;
+}
+
+.dashboard-content::-webkit-scrollbar-thumb:hover,
+.analysis-content::-webkit-scrollbar-thumb:hover,
+.articles-list-content::-webkit-scrollbar-thumb:hover,
+.organizations-content::-webkit-scrollbar-thumb:hover,
+.detailed-report-content::-webkit-scrollbar-thumb:hover,
+.help-content::-webkit-scrollbar-thumb:hover {
+  background: #95a5a6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-content,
+  .analysis-content,
+  .articles-list-content,
+  .organizations-content,
+  .detailed-report-content,
+  .help-content {
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
