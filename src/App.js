@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import ArticleAnalysis from './pages/ArticleAnalysis';
 import ArticlesList from './pages/ArticlesList';
@@ -41,8 +43,16 @@ function App() {
       <Router>
         <Routes>
           <Route
+            path="/"
+            element={!user ? <LandingPage /> : <Navigate to="/dashboard" />}
+          />
+          <Route
             path="/login"
             element={!user ? <Login /> : <Navigate to="/dashboard" />}
+          />
+          <Route
+            path="/signup"
+            element={!user ? <Signup /> : <Navigate to="/dashboard" />}
           />
           <Route
             path="/dashboard"
@@ -68,7 +78,6 @@ function App() {
             path="/help"
             element={user ? <Help /> : <Navigate to="/login" />}
           />
-          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
     </AuthContext.Provider>
