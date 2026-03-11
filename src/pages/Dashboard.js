@@ -48,22 +48,60 @@ function Dashboard() {
 
     setAnalyzing(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const newAnalysis = {
-        id: recentAnalyses.length + 1,
-        title: articleText.substring(0, 50) + '...',
-        source: 'User Input',
-        date: new Date().toISOString().split('T')[0],
-        score: Math.floor(Math.random() * 30) + 60,
-        label: 'Processing Complete',
-      };
+    //calls uvicorn server
+    try {
+      const response = await fetch('http://127.0.0.1:8000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: articleText }),
+      });
+    
+    if (!response.ok) throw new Error('Failed to Connect to analysis server');
 
-      setRecentAnalyses([newAnalysis, ...recentAnalyses.slice(0, 4)]);
-      setArticleText('');
+    const result = await response.json();
+    const uniqueID = Date.now();
+
+    const newAnalysis = {
+      id: uniqueID,
+      title: articleText.substring(0, 50) + '...',
+      source: 'AI Model',
+      date: new Date().toISOString().split('T')[0],
+      score: Math.round(result.prob_real * 100),
+      label: result.label === "REAL" ? "High Credibility" : "Low Credibility",
+      aiResult: result
+    };
+    
+    // setRecentAnalyses([newAnalysis, ...recentAnalyses.slice[0, 4]]);
+    setRecentAnalyses([newAnalysis, ...recentAnalyses.slice(0, 4)]);
+    setArticleText('');
+    setAnalyzing(false);
+    
+    navigate(`/analyze/${uniqueID}`, { state: {result} });
+
+    } catch (error) {
+      console.error("Analysis Error: ", error);
+      alert("Could not reach the analysis server.")
       setAnalyzing(false);
-      navigate(`/analyze/${newAnalysis.id}`);
-    }, 2000);
+    }
+
+    // Simulate API call
+  //   setTimeout(() => {
+  //     const newAnalysis = {
+  //       id: recentAnalyses.length + 1,
+  //       title: articleText.substring(0, 50) + '...',
+  //       source: 'User Input',
+  //       date: new Date().toISOString().split('T')[0],
+  //       score: Math.floor(Math.random() * 30) + 60,
+  //       label: 'Processing Complete',
+  //     };
+
+  //     setRecentAnalyses([newAnalysis, ...recentAnalyses.slice(0, 4)]);
+  //     setArticleText('');
+  //     setAnalyzing(false);
+  //     navigate(`/analyze/${newAnalysis.id}`);
+  //   }, 2000);
   };
 
   const getScoreBadgeClass = (score) => {
@@ -122,7 +160,7 @@ function Dashboard() {
                   {recentAnalyses.map((analysis) => (
                     <tr
                       key={analysis.id}
-                      onClick={() => navigate(`/analyze/${analysis.id}`)}
+                      onClick={() => navigate(`/analyze/${analysis.id}`, { state: { result: analysis.aiResult}})}
                       className="analyses-row"
                     >
                       <td className="title-cell">{analysis.title}</td>

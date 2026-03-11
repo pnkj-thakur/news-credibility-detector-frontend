@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -8,7 +8,10 @@ import './DetailedReport.css';
 function DetailedReport() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useContext(AuthContext);
+
+  const aiResult = location.state?.result;
 
   // Mock detailed report data
   const report = {
@@ -73,6 +76,24 @@ function DetailedReport() {
     ],
   };
 
+  const dynamicRecommendations = aiResult?.label === "FAKE" 
+    ? [
+        "This article matches known misinformation patterns. Do not share.", 
+        "Check primary sources.", 
+        "Verify the author's identity."
+      ]
+    : report.recommendations;
+
+  const displayReport = aiResult ? {
+    ...report, // Use the mock structure for indicators
+    title: "Detailed AI Analysis",
+    score: Math.round(aiResult.prob_real * 100),
+    label: aiResult.label === "REAL" ? "High Credibility" : "Low Credibility",
+    recommendations: dynamicRecommendations,
+    summary: `Our Transformer model has analyzed the linguistic patterns and determined a ${Math.round(aiResult.prob_real * 100)}% probability of the content being factual.`,
+    content: "AI processed text input..." 
+  } : report;
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Strong':
@@ -97,10 +118,10 @@ function DetailedReport() {
 
         <div className="detailed-report-content">
           <div className="report-header">
-            <h1>{report.title}</h1>
+            <h1>{displayReport.title}</h1>
             <div className="report-meta">
-              <span>{report.source}</span>
-              <span>{report.date}</span>
+              <span>{displayReport.source}</span>
+              <span>{displayReport.date}</span>
             </div>
           </div>
 
@@ -109,7 +130,7 @@ function DetailedReport() {
               <div className="article-preview">
                 <h3>Article Preview</h3>
                 <div className="preview-content">
-                  <p>{report.content}</p>
+                  <p>{displayReport.content}</p>
                 </div>
               </div>
             </div>
@@ -117,16 +138,16 @@ function DetailedReport() {
             <div className="report-right">
               <div className="score-summary">
                 <div className="score-badge" style={{ color: getStatusColor('Strong') }}>
-                  <div className="score-number">{report.score}%</div>
-                  <div className="score-label">{report.label}</div>
+                  <div className="score-number">{displayReport.score}%</div>
+                  <div className="score-label">{displayReport.label}</div>
                 </div>
-                <p className="score-summary-text">{report.summary}</p>
+                <p className="score-summary-text">{displayReport.summary}</p>
               </div>
 
               <div className="indicators-section">
                 <h3>Analysis Indicators</h3>
                 <div className="indicators-list">
-                  {report.indicators.map((indicator, idx) => (
+                  {displayReport.indicators.map((indicator, idx) => (
                     <div key={idx} className="indicator-item">
                       <div className="indicator-header">
                         <h4>{indicator.name}</h4>
@@ -157,7 +178,7 @@ function DetailedReport() {
               <div className="recommendations-section">
                 <h3>Recommendations for Verification</h3>
                 <ol className="recommendations-list">
-                  {report.recommendations.map((rec, idx) => (
+                  {displayReport.recommendations.map((rec, idx) => (
                     <li key={idx}>{rec}</li>
                   ))}
                 </ol>
