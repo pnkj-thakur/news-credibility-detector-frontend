@@ -17,10 +17,15 @@ function ArticleAnalysis() {
   const aiResult = location.state?.result;
   const hasSaved = useRef(false);
 
+  const encodeUnicode = (str) => {
+    return btoa(new TextEncoder().encode(str).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+  }
+
   useEffect(() => {
     const autoSave = async () => {
     if (!aiResult || !user || !user.id || hasSaved.current) return;
-    const saveKey = `saved_${btoa(aiResult.content || aiResult.text).substring(0, 16)}`;
+    const encodeContent = aiResult.content || aiResult.text || "";
+    const saveKey = `saved_${encodeUnicode(encodeContent).substring(0, 16)}`;
 
     if (sessionStorage.getItem(saveKey) || hasSaved.current) return;
     if (id && id !== 'new') return;
@@ -32,7 +37,7 @@ function ArticleAnalysis() {
           content: aiResult.content || "No content provided",
           source: aiResult.source || "Manual Entry",
           score: (aiResult.prob_real * 100).toFixed(2),
-          label: aiResult.label === "REAL" ? "real" : "fake",
+          label: aiResult.label === "REAL" ? "High Credibility" : "Low Credibility",
           summary: `The AI is ${(aiResult.prob_real * 100).toFixed(1)}% confident this is REAL.`,
         };
         await saveAnalysis(payload);
@@ -73,7 +78,7 @@ const rawScore = aiResult.score !== undefined
     source: aiResult.source || "AI Prediction",
     date: new Date().toLocaleDateString(),
     score: rawScore,
-    label: aiResult.label === "REAL" ? "real" : "fake",
+    label: aiResult.label === "REAL" ? "High Credibility" : "Low Credibility",
     summary: `The AI model is ${(rawScore).toFixed(2)}% confident this text is REAL`,
     keyFactors: [],
     flagsAndWarnings: (aiResult.label === "FAKE" || aiResult.label === "fake") 
