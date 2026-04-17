@@ -131,7 +131,7 @@ function ArticlesList() {
                     <tr key={article.id}>
                       <td className="title-cell">{article.title}</td>
                       <td>{article.source}</td>
-                      <td>{article.date}</td>
+                      <td>{new Date(article.analyzed_at).toLocaleDateString('en-CA')}</td>
                       <td>
                         <span
                           className={`score-badge ${getScoreBadgeClass(

@@ -148,7 +148,7 @@ function Dashboard() {
                     >
                       <td className="title-cell">{analysis.title}</td>
                       <td>{analysis.source}</td>
-                      <td>{analysis.analyzed_at ? new Date(analysis.analyzed_at).toLocaleDateString() : 'N/A'}</td>
+                      <td>{analysis.analyzed_at ? new Date(analysis.analyzed_at).toLocaleDateString('en-CA') : 'N/A'}</td>
                       <td>
                         <span className={`score-badge ${getScoreBadgeClass(analysis.score)}`}>
                           {Number(analysis.score).toFixed(2)}%
