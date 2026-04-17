@@ -1,9 +1,10 @@
-import React, { useState, useContext} from 'react';
+import React, { useState, useContext, useEffect, useRef} from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import './ArticleAnalysis.css';
+import { saveAnalysis } from '../services/api';
 
 function ArticleAnalysis() {
   const { id } = useParams();
@@ -14,48 +15,37 @@ function ArticleAnalysis() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const aiResult = location.state?.result;
+  const hasSaved = useRef(false);
 
-  // Mock data for analysis result
-  // const analysisResult = {
-  //   title: 'Global Climate Summit Reaches Historic Agreement',
-  //   source: 'Global News Network',
-  //   date: '2024-02-25',
-  //   url: 'https://example.com/article',
-  //   score: 85,
-  //   label: 'High Credibility',
-  //   summary:
-  //     'This article demonstrates strong credibility with well-sourced information and balanced reporting.',
-  //   keyFactors: [
-  //     {
-  //       name: 'Source Reliability',
-  //       status: 'Strong',
-  //       description: 'Publisher has established track record of accurate reporting',
-  //     },
-  //     {
-  //       name: 'Language Sentiment',
-  //       status: 'Neutral',
-  //       description: 'Article uses objective language without sensationalism',
-  //     },
-  //     {
-  //       name: 'Fact Verification',
-  //       status: 'Verified',
-  //       description: 'Multiple claims cross-referenced with reliable sources',
-  //     },
-  //     {
-  //       name: 'Author Credentials',
-  //       status: 'Strong',
-  //       description: 'Author is recognized expert in the field',
-  //     },
-  //   ],
-  //   flagsAndWarnings: [
-  //     {
-  //       flag: 'Minor concern',
-  //       description: 'One claim could benefit from additional source verification',
-  //     },
-  //   ],
-  //   content: `This is a sample article content demonstrating how news credibility detection works...`,
-  // };
+  useEffect(() => {
+    const autoSave = async () => {
+    if (!aiResult || !user || !user.id || hasSaved.current) return;
+    const saveKey = `saved_${btoa(aiResult.content || aiResult.text).substring(0, 16)}`;
 
+    if (sessionStorage.getItem(saveKey) || hasSaved.current) return;
+    if (id && id !== 'new') return;
+      try {
+        hasSaved.current = true;
+        const payload = {
+          userId: user.id,
+          title: aiResult.title || "Text Analysis",
+          content: aiResult.content || "No content provided",
+          source: aiResult.source || "Manual Entry",
+          score: (aiResult.prob_real * 100).toFixed(2),
+          label: aiResult.label === "REAL" ? "real" : "fake",
+          summary: `The AI is ${(aiResult.prob_real * 100).toFixed(1)}% confident this is REAL.`,
+        };
+        await saveAnalysis(payload);
+        sessionStorage.setItem(saveKey, 'true');
+        console.log("Analysis automatically saved");
+      } catch (err) {
+        console.error("Failed to save:", err);
+        hasSaved.current = false;
+      }
+  };
+  autoSave();
+  
+  }, [aiResult, user]);
 
   if (!aiResult) {
   return (
@@ -73,16 +63,22 @@ function ArticleAnalysis() {
   );
 }
 
-  //ai results
+const rawScore = aiResult.score !== undefined 
+  ? Number(aiResult.score) 
+  : Number(aiResult.prob_real) * 100;
+
   const displayData = {
     title: "Analysis Result",
-    source: "AI Prediction",
+    content: aiResult.text || aiResult.content || "",
+    source: aiResult.source || "AI Prediction",
     date: new Date().toLocaleDateString(),
-    score: aiResult.prob_real * 100,
-    label: aiResult.label === "REAL" ? "High Crediblity" : "Low Credibility",
-    summary: `The AI model is ${(aiResult.prob_real * 100).toFixed(1)}% confident this text is REAL and ${(aiResult.prob_fake * 100).toFixed(1)}% confident it is FAKE.`,
+    score: rawScore,
+    label: aiResult.label === "REAL" ? "real" : "fake",
+    summary: `The AI model is ${(rawScore).toFixed(2)}% confident this text is REAL`,
     keyFactors: [],
-    flagsAndWarnings: aiResult.label === "FAKE" ? [{flag: "High Risk", description: "This text matches patterns commonly found in misinformation."}] : []
+    flagsAndWarnings: (aiResult.label === "FAKE" || aiResult.label === "fake") 
+    ? [{flag: "High Risk", description: "This text matches patterns commonly found in misinformation."}] 
+    : []
   } 
 
   const handleFeedback = (helpful) => {
@@ -120,7 +116,7 @@ function ArticleAnalysis() {
               className="score-badge-large"
               style={{ borderColor: getScoreColor(displayData.score) }}
             >
-              <div className="score-number">{displayData.score.toFixed(1)}%</div>
+              <div className="score-number">{displayData.score.toFixed(2)}%</div>
               <div className="score-label">{displayData.label}</div>
             </div>
             <div className="score-description">

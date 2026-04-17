@@ -29,6 +29,7 @@ async function ensureDatabaseSetup() {
   await pool.query('SELECT 1 FROM users LIMIT 1');
   await pool.query('SELECT 1 FROM roles LIMIT 1');
   await pool.query('SELECT 1 FROM userroles LIMIT 1');
+  await pool.query('SELECT 1 FROM analysis_results LIMIT 1');
   await pool.query(`
     INSERT INTO roles (name, description)
     SELECT 'general-reader', 'General reader access'

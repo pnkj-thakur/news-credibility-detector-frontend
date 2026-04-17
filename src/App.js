@@ -32,6 +32,7 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    sessionStorage.clear();
   };
 
   if (loading) {
