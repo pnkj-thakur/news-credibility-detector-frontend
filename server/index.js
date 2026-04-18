@@ -1,14 +1,9 @@
-// require('dotenv').config();
+require('dotenv').config();
 
-// const express = require('express');
-// const cors = require('cors');
-// const bcrypt = require('bcryptjs');
-// const { getPool, ensureDatabaseSetup } = require('./db');
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import bcrypt from 'bcryptjs';
-import { getPool, ensureDatabaseSetup } from './db.js';
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const { getPool, ensureDatabaseSetup } = require('./db');
 
 const app = express();
 const port = Number(process.env.PORT || 5001);
