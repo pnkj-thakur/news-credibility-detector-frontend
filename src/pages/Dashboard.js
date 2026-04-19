@@ -1,42 +1,39 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import './Dashboard.css';
+import { getArticles } from '../services/api';
 
 function Dashboard() {
+  const [articleTitle, setArticleTitle] = useState('');
   const [articleText, setArticleText] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
-  const [recentAnalyses, setRecentAnalyses] = useState([
-    {
-      id: 1,
-      title: 'Global Climate Summit Reaches Historic Agreement',
-      source: 'Global News Network',
-      date: '2024-02-25',
-      score: 85,
-      label: 'High Credibility',
-    },
-    {
-      id: 2,
-      title: 'Tech Company Announces New Product Line',
-      source: 'Tech Weekly',
-      date: '2024-02-24',
-      score: 72,
-      label: 'Moderate Credibility',
-    },
-    {
-      id: 3,
-      title: 'Market Shows Signs of Recovery',
-      source: 'Financial Times',
-      date: '2024-02-23',
-      score: 78,
-      label: 'High Credibility',
-    },
-  ]);
+  const [recentAnalyses, setRecentAnalyses] = useState([]);
 
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await getArticles(user.id);
+        if (response && response.data && Array.isArray(response.data)) {
+          setRecentAnalyses(response.data.slice(0,5));
+        } else {
+          setRecentAnalyses([])
+        }
+      } catch (err) {
+        console.error("Failed to fetch history:", err);
+        setRecentAnalyses([])
+      }
+    };
+
+    fetchHistory();
+  }, [user]);
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
@@ -48,22 +45,36 @@ function Dashboard() {
 
     setAnalyzing(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const newAnalysis = {
-        id: recentAnalyses.length + 1,
-        title: articleText.substring(0, 50) + '...',
-        source: 'User Input',
-        date: new Date().toISOString().split('T')[0],
-        score: Math.floor(Math.random() * 30) + 60,
-        label: 'Processing Complete',
-      };
+    //calls uvicorn server
+    try {
+      const response = await fetch('http://127.0.0.1:8000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: articleText }),
+      });
+    
+    if (!response.ok) throw new Error('Failed to Connect to analysis server');
 
-      setRecentAnalyses([newAnalysis, ...recentAnalyses.slice(0, 4)]);
-      setArticleText('');
+    const result = await response.json();
+
+    const resultWithTitle = {
+      ...result,
+      title: articleTitle || "Text Analysis",
+      content: articleText
+    };
+
+    setAnalyzing(false);
+    
+    // navigate(`/analyze/${uniqueID}`, { state: {result} });
+    navigate(`/analyze/new`, { state: {result: resultWithTitle} });
+
+    } catch (error) {
+      console.error("Analysis Error: ", error);
+      alert("Could not reach the analysis server.")
       setAnalyzing(false);
-      navigate(`/analyze/${newAnalysis.id}`);
-    }, 2000);
+    }
   };
 
   const getScoreBadgeClass = (score) => {
@@ -83,6 +94,15 @@ function Dashboard() {
             <h2>Analyze a News Article</h2>
             <form onSubmit={handleAnalyze} className="article-form">
               <div className="form-group">
+                <label htmlFor='articleTitle'>Article Title</label>
+                <input 
+                  id='articleTitle'
+                  type="text"
+                  value={articleTitle}
+                  onChange={(e) => setArticleTitle(e.target.value)}
+                  placeholder='Enter a title for this analysis (e.g., Politics, Global Warming, etc.)'
+                  className='article-input-title'
+                />
                 <label htmlFor="articleText">
                   Paste or type the full article text here, then click Analyze.
                 </label>
@@ -121,16 +141,17 @@ function Dashboard() {
                 <tbody>
                   {recentAnalyses.map((analysis) => (
                     <tr
-                      key={analysis.id}
-                      onClick={() => navigate(`/analyze/${analysis.id}`)}
+                      key={analysis.article_id || analysis.id}
+                      onClick={() => navigate(`/analyze/${analysis.article_id || analysis.id}`, { state: { result: analysis}})}
                       className="analyses-row"
+                      style={{ cursor: 'pointer' }}
                     >
                       <td className="title-cell">{analysis.title}</td>
                       <td>{analysis.source}</td>
-                      <td>{analysis.date}</td>
+                      <td>{analysis.analyzed_at ? new Date(analysis.analyzed_at).toLocaleDateString('en-CA') : 'N/A'}</td>
                       <td>
                         <span className={`score-badge ${getScoreBadgeClass(analysis.score)}`}>
-                          {analysis.score}%
+                          {Number(analysis.score).toFixed(2)}%
                         </span>
                       </td>
                       <td>{analysis.label}</td>

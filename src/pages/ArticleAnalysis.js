@@ -1,57 +1,90 @@
-import React, { useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useContext, useEffect, useRef} from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import './ArticleAnalysis.css';
+import { saveAnalysis } from '../services/api';
 
 function ArticleAnalysis() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useContext(AuthContext);
   const [feedback, setFeedback] = useState('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
-  // Mock data for analysis result
-  const analysisResult = {
-    title: 'Global Climate Summit Reaches Historic Agreement',
-    source: 'Global News Network',
-    date: '2024-02-25',
-    url: 'https://example.com/article',
-    score: 85,
-    label: 'High Credibility',
-    summary:
-      'This article demonstrates strong credibility with well-sourced information and balanced reporting.',
-    keyFactors: [
-      {
-        name: 'Source Reliability',
-        status: 'Strong',
-        description: 'Publisher has established track record of accurate reporting',
-      },
-      {
-        name: 'Language Sentiment',
-        status: 'Neutral',
-        description: 'Article uses objective language without sensationalism',
-      },
-      {
-        name: 'Fact Verification',
-        status: 'Verified',
-        description: 'Multiple claims cross-referenced with reliable sources',
-      },
-      {
-        name: 'Author Credentials',
-        status: 'Strong',
-        description: 'Author is recognized expert in the field',
-      },
-    ],
-    flagsAndWarnings: [
-      {
-        flag: 'Minor concern',
-        description: 'One claim could benefit from additional source verification',
-      },
-    ],
-    content: `This is a sample article content demonstrating how news credibility detection works...`,
+  const aiResult = location.state?.result;
+  const hasSaved = useRef(false);
+
+  const encodeUnicode = (str) => {
+    return btoa(new TextEncoder().encode(str).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+  }
+
+  useEffect(() => {
+    const autoSave = async () => {
+    if (!aiResult || !user || !user.id || hasSaved.current) return;
+    const encodeContent = aiResult.content || aiResult.text || "";
+    const saveKey = `saved_${encodeUnicode(encodeContent).substring(0, 16)}`;
+
+    if (sessionStorage.getItem(saveKey) || hasSaved.current) return;
+    if (id && id !== 'new') return;
+      try {
+        hasSaved.current = true;
+        const payload = {
+          userId: user.id,
+          title: aiResult.title || "Text Analysis",
+          content: aiResult.content || "No content provided",
+          source: aiResult.source || "Manual Entry",
+          score: (aiResult.prob_real * 100).toFixed(2),
+          label: aiResult.label === "REAL" ? "High Credibility" : "Low Credibility",
+          summary: `The AI is ${(aiResult.prob_real * 100).toFixed(1)}% confident this is REAL.`,
+        };
+        await saveAnalysis(payload);
+        sessionStorage.setItem(saveKey, 'true');
+        console.log("Analysis automatically saved");
+      } catch (err) {
+        console.error("Failed to save:", err);
+        hasSaved.current = false;
+      }
   };
+  autoSave();
+  
+  }, [aiResult, user]);
+
+  if (!aiResult) {
+  return (
+    <div className="analysis-container">
+      <Sidebar />
+      <div className="analysis-main">
+        <Header user={user} />
+        <div className="error-state">
+          <h2>No Analysis Data Found</h2>
+          <p>Please go back to the Dashboard and paste an article to analyze.</p>
+          <button onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const rawScore = aiResult.score !== undefined 
+  ? Number(aiResult.score) 
+  : Number(aiResult.prob_real) * 100;
+
+  const displayData = {
+    title: "Analysis Result",
+    content: aiResult.text || aiResult.content || "",
+    source: aiResult.source || "AI Prediction",
+    date: new Date().toLocaleDateString(),
+    score: rawScore,
+    label: aiResult.label === "REAL" ? "High Credibility" : "Low Credibility",
+    summary: `The AI model is ${(rawScore).toFixed(2)}% confident this text is REAL`,
+    keyFactors: [],
+    flagsAndWarnings: (aiResult.label === "FAKE" || aiResult.label === "fake") 
+    ? [{flag: "High Risk", description: "This text matches patterns commonly found in misinformation."}] 
+    : []
+  } 
 
   const handleFeedback = (helpful) => {
     setFeedback(helpful ? 'helpful' : 'not-helpful');
@@ -76,23 +109,23 @@ function ArticleAnalysis() {
 
         <div className="analysis-content">
           <div className="article-header">
-            <h1>{analysisResult.title}</h1>
+            <h1>{displayData.title}</h1>
             <div className="article-meta">
-              <span className="source">{analysisResult.source}</span>
-              <span className="date">{analysisResult.date}</span>
+              <span className="source">{displayData.source}</span>
+              <span className="date">{displayData.date}</span>
             </div>
           </div>
 
           <div className="score-section">
             <div
               className="score-badge-large"
-              style={{ borderColor: getScoreColor(analysisResult.score) }}
+              style={{ borderColor: getScoreColor(displayData.score) }}
             >
-              <div className="score-number">{analysisResult.score}%</div>
-              <div className="score-label">{analysisResult.label}</div>
+              <div className="score-number">{displayData.score.toFixed(2)}%</div>
+              <div className="score-label">{displayData.label}</div>
             </div>
             <div className="score-description">
-              <p>{analysisResult.summary}</p>
+              <p>{displayData.summary}</p>
             </div>
           </div>
 
@@ -100,7 +133,7 @@ function ArticleAnalysis() {
             <div className="key-factors">
               <h3>Key Factors</h3>
               <div className="factors-list">
-                {analysisResult.keyFactors.map((factor, idx) => (
+                {displayData.keyFactors.map((factor, idx) => (
                   <div key={idx} className="factor-item">
                     <div className="factor-header">
                       <h4>{factor.name}</h4>
@@ -116,9 +149,9 @@ function ArticleAnalysis() {
 
             <div className="flags-warnings">
               <h3>Flags & Warnings</h3>
-              {analysisResult.flagsAndWarnings.length > 0 ? (
+              {displayData.flagsAndWarnings.length > 0 ? (
                 <div className="warnings-list">
-                  {analysisResult.flagsAndWarnings.map((warning, idx) => (
+                  {displayData.flagsAndWarnings.map((warning, idx) => (
                     <div key={idx} className="warning-item">
                       <h4>{warning.flag}</h4>
                       <p>{warning.description}</p>
@@ -162,7 +195,8 @@ function ArticleAnalysis() {
               Back to Dashboard
             </button>
             <button
-              onClick={() => navigate(`/report/${id}`)}
+              // onClick={() => navigate(`/report/${id}`)}
+              onClick={() => navigate(`/report/${id}`, { state: { result: aiResult } })}
               className="btn-primary"
             >
               View Detailed Report

@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const { getPool, ensureDatabaseSetup } = require('./db');
 
 const app = express();
-const port = Number(process.env.PORT || 5000);
+const port = Number(process.env.PORT || 5001);
 
 app.use(
   cors({
@@ -183,5 +183,48 @@ async function startServer() {
     process.exit(1);
   }
 }
+
+
+app.get('/api/articles', async (req, res) => {
+  const { userId} = req.query;
+  if (!userId) {
+    return res.status(400).json({ message: "userID required" });
+  }
+  try {
+    const [rows] = await getPool().query(
+      `SELECT
+        article_id AS id,
+        title,
+        content,
+        source,
+        label,
+        score,
+        summary,
+        analyzed_at
+      FROM analysis_results
+      WHERE user_id = ?
+      ORDER BY analyzed_at DESC`,
+      [userId]
+    );
+    res.json(rows);
+  } catch (error) {
+     res.status(500).json({ message: 'Failed to load articles', error: error.message});
+  }
+});
+
+app.post('/api/articles', async (req, res) => {
+  const { userId, title, content, source, score, label, summary} = req.body;
+  try {
+    const [result] = await getPool().query(
+      `INSERT INTO analysis_results
+        (user_id, title, content, source, score, label, summary)
+       VALUES (? ,? ,?, ?, ?, ?, ?)`,
+        [userId, title, content, source, score, label, summary]
+    );
+    res.status(201).json({ message: 'Analysis saved!', articleId: result.insertId });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to save analysis', error: error.message });
+  }
+});
 
 startServer();

@@ -1,68 +1,45 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import './ArticlesList.css';
+import { getArticles } from '../services/api';
 
 function ArticlesList() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSource, setFilterSource] = useState('');
   const [filterScore, setFilterScore] = useState('');
 
-  const [articles] = useState([
-    {
-      id: 1,
-      title: 'Global Climate Summit Reaches Historic Agreement',
-      source: 'Global News Network',
-      date: '2024-02-25',
-      score: 85,
-    },
-    {
-      id: 2,
-      title: 'Tech Company Announces New Product Line',
-      source: 'Tech Weekly',
-      date: '2024-02-24',
-      score: 72,
-    },
-    {
-      id: 3,
-      title: 'Market Shows Signs of Recovery',
-      source: 'Financial Times',
-      date: '2024-02-23',
-      score: 78,
-    },
-    {
-      id: 4,
-      title: 'Healthcare Reform Proposal Sparks Debate',
-      source: 'Politics Daily',
-      date: '2024-02-22',
-      score: 65,
-    },
-    {
-      id: 5,
-      title: 'Scientific Breakthrough in Medicine',
-      source: 'Science Journal',
-      date: '2024-02-21',
-      score: 92,
-    },
-  ]);
+  useEffect(() => {
+    const loadData = async() => {
+      if (!user?.id) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await getArticles(user.id);
+        setArticles(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        console.error("Failed to load articles:", err);
+        setError("Could not load analysis history");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [user?.id]);
 
-  const filteredArticles = articles.filter((article) => {
-    const matchesSearch = article.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesSource = !filterSource || article.source === filterSource;
-    const matchesScore =
-      !filterScore || getScoreRange(article.score) === filterScore;
-    return matchesSearch && matchesSource && matchesScore;
-  });
-
-  const getScoreRange = (score) => {
-    if (score >= 80) return 'high';
-    if (score >= 60) return 'moderate';
+ const getScoreRange = (score) => {
+    const numScore = Number(score);
+    if (numScore >= 80) return 'high';
+    if (numScore >= 60) return 'moderate';
     return 'low';
   };
 
@@ -72,8 +49,21 @@ function ArticlesList() {
     return 'badge-low';
   };
 
-  const sources = [...new Set(articles.map((a) => a.source))];
+  const filteredArticles = articles.filter((article) => {
+    const matchesSearch = article.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesSource = !filterSource || article.source === filterSource;
+    const matchesScore = !filterScore || getScoreRange(article.score) === filterScore;
+    return matchesSearch && matchesSource && matchesScore;
+  });
 
+ 
+
+  const sources = [...new Set(articles.map((a) => a.source))];
+  if (loading) return <div className="loading">Connecting to the Database . . .</div>;
+  if (error) return <div className='error'>{error}</div>;
+  
   return (
     <div className="articles-list-container">
       <Sidebar />
@@ -141,19 +131,19 @@ function ArticlesList() {
                     <tr key={article.id}>
                       <td className="title-cell">{article.title}</td>
                       <td>{article.source}</td>
-                      <td>{article.date}</td>
+                      <td>{new Date(article.analyzed_at).toLocaleDateString('en-CA')}</td>
                       <td>
                         <span
                           className={`score-badge ${getScoreBadgeClass(
                             article.score
                           )}`}
                         >
-                          {article.score}%
+                          {Number(article.score).toFixed(2)}%
                         </span>
                       </td>
                       <td>
                         <button
-                          onClick={() => navigate(`/analyze/${article.id}`)}
+                          onClick={() => navigate(`/report/${article.id}`, { state: { result: article } })}
                           className="view-btn"
                         >
                           View Details
